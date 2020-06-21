@@ -1,0 +1,2 @@
+ModelNet40: http://modelnet.cs.princeton.edu/ModelNet40.zip
+7scene:   https://drive.google.com/file/d/1XdQ3muo5anFA28ZFch06z_iTEjXxLEQi/view?usp=sharing

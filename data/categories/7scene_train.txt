@@ -1,0 +1,6 @@
+7-scenes-chess
+7-scenes-fire
+7-scenes-heads
+7-scenes-pumpkin
+7-scenes-redkitchen
+7-scenes-stairs
