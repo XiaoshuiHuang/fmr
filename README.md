@@ -37,8 +37,16 @@ To run the code, please follow the below steps:
    3.1. Evaluate on dataset 7scene: 
    
     python evalute.py -data 7scene
-   
-### 4. Citation
+ 
+### 4. pre-trained models
+
+will update soon
+
+### 5. Test on new point clouds
+
+will update soon
+ 
+### 6. Citation
 
 ```
 @InProceedings{Huang_2020_CVPR,
