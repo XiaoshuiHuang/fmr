@@ -12,7 +12,6 @@ PY3="C:\\Users\\xhua5093\\AppData\\Local\\Continuum\\anaconda3\\python.exe"
 # categories for testing
 CMN="-i ./ModelNet40 -c ./categories/modelnet40_half1.txt --format wt"
 
-
 ${PY3} generate_rotations.py ${CMN} -o ${OUTDIR}/pert_000.csv --deg 0.0
 ${PY3} generate_rotations.py ${CMN} -o ${OUTDIR}/pert_010.csv --deg 10.0
 ${PY3} generate_rotations.py ${CMN} -o ${OUTDIR}/pert_020.csv --deg 20.0

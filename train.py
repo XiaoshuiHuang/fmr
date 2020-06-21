@@ -9,8 +9,10 @@ import torch
 import os
 import argparse
 import logging
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
+
 
 def parameters(argv=None):
     parser = argparse.ArgumentParser(description='PointNet-LK')
@@ -19,8 +21,8 @@ def parameters(argv=None):
     parser.add_argument('-data', '--dataset-type', default='7scene', choices=['modelnet', '7scene'],
                         metavar='DATASET', help='dataset type (default: modelnet)')
     parser.add_argument('-o', '--outfile', default='./result/fmr', type=str,
-                        metavar='BASENAME', help='output filename (prefix)') # the result: ${BASENAME}_model_best.pth
-    parser.add_argument('--store', default='./result/fmr_model.pth', type=str,metavar='PATH',
+                        metavar='BASENAME', help='output filename (prefix)')  # the result: ${BASENAME}_model_best.pth
+    parser.add_argument('--store', default='./result/fmr_model.pth', type=str, metavar='PATH',
                         help='path to the trained model')
     parser.add_argument('--train-type', default=0, type=int,
                         metavar='type', help='unsupervised (0) or semi-supervised (1) training (default: 0)')
@@ -55,12 +57,14 @@ def parameters(argv=None):
     parser.add_argument('--device', default='cuda:0', type=str,
                         metavar='DEVICE', help='use CUDA if available')
     parser.add_argument('-i', '--dataset-path', default='./data/ModelNet40', type=str,
-                        metavar='PATH', help='path to the input dataset') # like '/path/to/ModelNet40'
+                        metavar='PATH', help='path to the input dataset')  # like '/path/to/ModelNet40'
     parser.add_argument('-c', '--categoryfile', default='./data/categories/modelnet40_half1.txt', type=str,
-                        metavar='PATH', help='path to the categories to be trained') # eg. './sampledata/modelnet40_half1.txt'
+                        metavar='PATH',
+                        help='path to the categories to be trained')  # eg. './sampledata/modelnet40_half1.txt'
     parser.add_argument('--mode', default='train', help='program mode. This code is for training')
     args = parser.parse_args(argv)
     return args
+
 
 def main(args):
     # dataset
@@ -69,6 +73,7 @@ def main(args):
     # training
     fmr = model.FMRTrain(dim_k=args.dim_k, num_points=args.num_points, train_type=args.train_type)
     run(args, trainset, testset, fmr)
+
 
 def run(args, trainset, testset, action):
     if not torch.cuda.is_available():
@@ -114,8 +119,6 @@ def run(args, trainset, testset, action):
     # training
     LOGGER.debug('train, begin')
     for epoch in range(args.start_epoch, args.epochs):
-        # scheduler.step()
-
         running_loss = action.train(model, trainloader, optimizer, args.device)
         val_loss = action.validate(model, testloader, args.device)
 
@@ -123,19 +126,17 @@ def run(args, trainset, testset, action):
         min_loss = min(val_loss, min_loss)
 
         LOGGER.info('epoch, %04d, %f, %f', epoch + 1, running_loss, val_loss)
-        print('epoch, %04d, floss_train=%f, floss_val=%f' % (
-        epoch + 1, running_loss, val_loss))
-        snap = {'epoch': epoch + 1,
-                'model': model.state_dict(),
-                'min_loss': min_loss,
-                'optimizer': optimizer.state_dict(), }
+        print('epoch, %04d, floss_train=%f, floss_val=%f' % (epoch + 1, running_loss, val_loss))
+
         if is_best:
             save_checkpoint(model.state_dict(), args.outfile, 'model')
 
     LOGGER.debug('train, end')
 
+
 def save_checkpoint(state, filename, suffix):
     torch.save(state, '{}_{}.pth'.format(filename, suffix))
+
 
 if __name__ == '__main__':
     ARGS = parameters()

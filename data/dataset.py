@@ -22,6 +22,8 @@ import se_math.transforms as transforms
 """
 The following three functions are defined for getting data from specific database 
 """
+
+
 # find the total class names and its corresponding index from a folder
 # (see the data storage structure of modelnet40)
 def find_classes(root):
@@ -31,10 +33,12 @@ def find_classes(root):
     class_to_idx = {classes[i]: i for i in range(len(classes))}
     return classes, class_to_idx
 
+
 # get the indexes from given class names
 def classes_to_cinfo(classes):
     class_to_idx = {classes[i]: i for i in range(len(classes))}
     return classes, class_to_idx
+
 
 # get the whole 3D point cloud paths for a given class
 def glob_dataset(root, class_to_idx, ptns):
@@ -60,10 +64,12 @@ def glob_dataset(root, class_to_idx, ptns):
                 samples.append(item)
     return samples
 
+
 # a general class for obtaining the 3D point cloud data from a database
 class PointCloudDataset(torch.utils.data.Dataset):
     """ glob ${rootdir}/${classes}/${pattern}
     """
+
     def __init__(self, rootdir, pattern, fileloader, transform=None, classinfo=None):
         super().__init__()
 
@@ -136,6 +142,7 @@ class PointCloudDataset(torch.utils.data.Dataset):
 
 class ModelNet(PointCloudDataset):
     """ [Princeton ModelNet](http://modelnet.cs.princeton.edu/) """
+
     def __init__(self, dataset_path, train=1, transform=None, classinfo=None):
         loader = mesh.offread
         if train > 0:
@@ -146,15 +153,19 @@ class ModelNet(PointCloudDataset):
             pattern = ['train/*.off', 'test/*.off']
         super().__init__(dataset_path, pattern, loader, transform, classinfo)
 
+
 class ShapeNet2(PointCloudDataset):
     """ [ShapeNet](https://www.shapenet.org/) v2 """
+
     def __init__(self, dataset_path, transform=None, classinfo=None):
         loader = mesh.objread
         pattern = '*/models/model_normalized.obj'
         super().__init__(dataset_path, pattern, loader, transform, classinfo)
 
+
 class Scene7(PointCloudDataset):
     """ [Scene7 PointCloud](https://github.com/XiaoshuiHuang/fmr) """
+
     def __init__(self, dataset_path, train=1, transform=None, classinfo=None):
         loader = mesh.plyread
         if train > 0:
@@ -164,6 +175,7 @@ class Scene7(PointCloudDataset):
         else:
             pattern = ['*.ply', '*.ply']
         super().__init__(dataset_path, pattern, loader, transform, classinfo)
+
 
 class TransformedDataset(torch.utils.data.Dataset):
     def __init__(self, dataset, rigid_transform, source_modifier=None, template_modifier=None):
@@ -192,10 +204,11 @@ class TransformedDataset(torch.utils.data.Dataset):
         # p0: template, p1: source, igt: transform matrix from p0 to p1
         return p0, p1, igt
 
+
 class TransformedFixedDataset(torch.utils.data.Dataset):
     def __init__(self, dataset, perturbation):
         self.dataset = dataset
-        self.perturbation = numpy.array(perturbation) # twist (len(dataset), 6)
+        self.perturbation = numpy.array(perturbation)  # twist (len(dataset), 6)
 
     def do_transform(self, p0, x):
         # p0: [N, 3]
@@ -224,6 +237,7 @@ class TransformedFixedDataset(torch.utils.data.Dataset):
         # p0: template, p1: source, igt: transform matrix from p0 to p1
         return p0, p1, igt
 
+
 def get_categories(args):
     cinfo = None
     if args.categoryfile:
@@ -233,10 +247,11 @@ def get_categories(args):
         cinfo = (categories, c_to_idx)
     return cinfo
 
+
 # global dataset function, could call to get dataset
 def get_datasets(args):
     if args.dataset_type == 'modelnet':
-        #download modelnet40 for training
+        # download modelnet40 for training
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         DATA_DIR = os.path.join(BASE_DIR, 'ModelNet40')
         if not os.path.exists(DATA_DIR):
@@ -246,7 +261,8 @@ def get_datasets(args):
             os.system('mv %s %s' % (zipfile[:-4], BASE_DIR))
             os.system('rm %s' % (zipfile))
         if not os.path.exists(DATA_DIR):
-            exit("Please download ModelNET40 and put it in the data folder, the download link is http://modelnet.cs.princeton.edu/ModelNet40.zip")
+            exit(
+                "Please download ModelNET40 and put it in the data folder, the download link is http://modelnet.cs.princeton.edu/ModelNet40.zip")
 
         if args.mode == 'train':
             # set path and category file for training
@@ -288,17 +304,17 @@ def get_datasets(args):
             args.categoryfile = './data/categories/7scene_train.txt'
             cinfo = get_categories(args)
 
-            transform = torchvision.transforms.Compose([\
+            transform = torchvision.transforms.Compose([ \
                 transforms.Mesh2Points(), \
-                transforms.OnUnitCube(),\
+                transforms.OnUnitCube(), \
                 transforms.Resampler(args.num_points)])
 
             dataset = Scene7(args.dataset_path, transform=transform, classinfo=cinfo)
             traindata, testdata = dataset.split(0.8)
 
             mag_randomly = True
-            trainset = TransformedDataset(traindata,transforms.RandomTransformSE3(args.mag, mag_randomly))
-            testset = TransformedDataset(testdata,transforms.RandomTransformSE3(args.mag, mag_randomly))
+            trainset = TransformedDataset(traindata, transforms.RandomTransformSE3(args.mag, mag_randomly))
+            testset = TransformedDataset(testdata, transforms.RandomTransformSE3(args.mag, mag_randomly))
             return trainset, testset
         else:
             # set path and category file for testing
@@ -308,7 +324,7 @@ def get_datasets(args):
 
             transform = torchvision.transforms.Compose([ \
                 transforms.Mesh2Points(), \
-                transforms.OnUnitCube(),\
+                transforms.OnUnitCube(), \
                 transforms.Resampler(10000), \
                 ])
 
@@ -318,5 +334,3 @@ def get_datasets(args):
             mag_randomly = True
             testset = TransformedDataset(testdata, transforms.RandomTransformSE3(0.6, mag_randomly))
             return testset
-
-

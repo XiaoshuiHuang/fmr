@@ -8,8 +8,10 @@ def cross_prod(x, y):
     z = torch.cross(x.view(-1, 3), y.view(-1, 3), dim=1).view_as(x)
     return z
 
+
 def liebracket(x, y):
     return cross_prod(x, y)
+
 
 def mat(x):
     # size: [*, 3] -> [*, 3, 3]
@@ -23,17 +25,21 @@ def mat(x):
         torch.stack((-x2, x1, O), dim=1)), dim=1)
     return X.view(*(x.size()[0:-1]), 3, 3)
 
+
 def vec(X):
     X_ = X.view(-1, 3, 3)
     x1, x2, x3 = X_[:, 2, 1], X_[:, 0, 2], X_[:, 1, 0]
     x = torch.stack((x1, x2, x3), dim=1)
     return x.view(*X.size()[0:-2], 3)
 
+
 def genvec():
     return torch.eye(3)
 
+
 def genmat():
     return mat(genvec())
+
 
 def RodriguesRotation(x):
     # for autograd
@@ -44,12 +50,13 @@ def RodriguesRotation(x):
     I = torch.eye(3).to(w)
 
     # Rodrigues' rotation formula.
-    #R = cos(t)*eye(3) + sinc1(t)*W + sinc2(t)*(w*w');
-    #R = eye(3) + sinc1(t)*W + sinc2(t)*S
+    # R = cos(t)*eye(3) + sinc1(t)*W + sinc2(t)*(w*w');
+    # R = eye(3) + sinc1(t)*W + sinc2(t)*S
 
-    R = I + sinc.Sinc1(t)*W + sinc.Sinc2(t)*S
+    R = I + sinc.Sinc1(t) * W + sinc.Sinc2(t) * S
 
     return R.view(*(x.size()[0:-1]), 3, 3)
+
 
 def exp(x):
     w = x.view(-1, 3)
@@ -59,17 +66,19 @@ def exp(x):
     I = torch.eye(3).to(w)
 
     # Rodrigues' rotation formula.
-    #R = cos(t)*eye(3) + sinc1(t)*W + sinc2(t)*(w*w');
-    #R = eye(3) + sinc1(t)*W + sinc2(t)*S
+    # R = cos(t)*eye(3) + sinc1(t)*W + sinc2(t)*(w*w');
+    # R = eye(3) + sinc1(t)*W + sinc2(t)*S
 
-    R = I + sinc1(t)*W + sinc2(t)*S
+    R = I + sinc1(t) * W + sinc2(t) * S
 
     return R.view(*(x.size()[0:-1]), 3, 3)
+
 
 def inverse(g):
     R = g.view(-1, 3, 3)
     Rt = R.transpose(1, 2)
     return Rt.view_as(g)
+
 
 def btrace(X):
     # batch-trace: [B, N, N] -> [B]
@@ -80,6 +89,7 @@ def btrace(X):
         m = X_[i, :, :]
         tr[i] = torch.trace(m)
     return tr.view(*(X.size()[0:-2]))
+
 
 def log(g):
     eps = 1.0e-7
@@ -94,7 +104,7 @@ def log(g):
 
     X = torch.zeros_like(R)
     if idx1.any():
-        X[idx1] = (R[idx1] - R[idx1].transpose(1, 2)) / (2*sc[idx1])
+        X[idx1] = (R[idx1] - R[idx1].transpose(1, 2)) / (2 * sc[idx1])
 
     if idx0.any():
         # t[idx0] == math.pi
@@ -118,6 +128,7 @@ def log(g):
     x = vec(X.view_as(g))
     return x
 
+
 def transform(g, a):
     # g in SO(3):  * x 3 x 3
     # a in R^3:    * x 3[x N]
@@ -127,11 +138,11 @@ def transform(g, a):
         b = g.matmul(a.unsqueeze(-1)).squeeze(-1)
     return b
 
+
 def group_prod(g, h):
     # g, h : SO(3)
     g1 = g.matmul(h)
     return g1
-
 
 
 def vecs_Xg_ig(x):
@@ -141,15 +152,16 @@ def vecs_Xg_ig(x):
     t = x.view(-1, 3).norm(p=2, dim=1).view(-1, 1, 1)
     X = mat(x)
     S = X.bmm(X)
-    #B = x.view(-1,3,1).bmm(x.view(-1,1,3))  # B = x*x'
+    # B = x.view(-1,3,1).bmm(x.view(-1,1,3))  # B = x*x'
     I = torch.eye(3).to(X)
 
-    #V = sinc1(t)*eye(3) + sinc2(t)*X + sinc3(t)*B
-    #V = eye(3) + sinc2(t)*X + sinc3(t)*S
+    # V = sinc1(t)*eye(3) + sinc2(t)*X + sinc3(t)*B
+    # V = eye(3) + sinc2(t)*X + sinc3(t)*S
 
-    V = I + sinc2(t)*X + sinc3(t)*S
+    V = I + sinc2(t) * X + sinc3(t) * S
 
     return V.view(*(x.size()[0:-1]), 3, 3)
+
 
 def inv_vecs_Xg_ig(x):
     """ H = inv(vecs_Xg_ig(x)) """
@@ -163,16 +175,17 @@ def inv_vecs_Xg_ig(x):
     s = (t < e)
     c = (s == 0)
     t2 = t[s] ** 2
-    eta[s] = ((t2/40 + 1)*t2/42 + 1)*t2/720 + 1/12 # O(t**8)
-    eta[c] = (1 - (t[c]/2) / torch.tan(t[c]/2)) / (t[c]**2)
+    eta[s] = ((t2 / 40 + 1) * t2 / 42 + 1) * t2 / 720 + 1 / 12  # O(t**8)
+    eta[c] = (1 - (t[c] / 2) / torch.tan(t[c] / 2)) / (t[c] ** 2)
 
-    H = I - 1/2*X + eta*S
+    H = I - 1 / 2 * X + eta * S
     return H.view(*(x.size()[0:-1]), 3, 3)
 
 
 class ExpMap(torch.autograd.Function):
     """ Exp: so(3) -> SO(3)
     """
+
     @staticmethod
     def forward(ctx, x):
         """ Exp: R^3 -> M(3),
@@ -188,9 +201,9 @@ class ExpMap(torch.autograd.Function):
         x, = ctx.saved_tensors
         g = exp(x)
         gen_k = genmat().to(x)
-        #gen_1 = gen_k[0, :, :]
-        #gen_2 = gen_k[1, :, :]
-        #gen_3 = gen_k[2, :, :]
+        # gen_1 = gen_k[0, :, :]
+        # gen_2 = gen_k[1, :, :]
+        # gen_3 = gen_k[2, :, :]
 
         # Let z = f(g) = f(exp(x))
         # dz = df/dgij * dgij/dxk * dxk
@@ -207,7 +220,7 @@ class ExpMap(torch.autograd.Function):
 
         return grad_input
 
+
 Exp = ExpMap.apply
 
-
-#EOF
+# EOF

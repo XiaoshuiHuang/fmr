@@ -9,11 +9,12 @@ import matplotlib.pyplot
 # used to read ply files
 from plyfile import PlyData
 
+
 class Mesh:
     def __init__(self):
-        self._vertices = [] # array-like (N, D)
-        self._faces = [] # array-like (M, K)
-        self._edges = [] # array-like (L, 2)
+        self._vertices = []  # array-like (N, D)
+        self._faces = []  # array-like (M, K)
+        self._edges = []  # array-like (L, 2)
 
     def clone(self):
         other = copy.deepcopy(self)
@@ -37,7 +38,7 @@ class Mesh:
     @staticmethod
     def faces2polygons(faces, vertices):
         p = list(map(lambda face: \
-                        list(map(lambda vidx: vertices[vidx], face)), faces))
+                         list(map(lambda vidx: vertices[vidx], face)), faces))
         return p
 
     @property
@@ -63,23 +64,23 @@ class Mesh:
 
     def on_unit_sphere(self, zero_mean=False):
         # radius == 1
-        v = self.vertex_array # (N, D)
+        v = self.vertex_array  # (N, D)
         if zero_mean:
-            a = numpy.mean(v[:, 0:3], axis=0, keepdims=True) # (1, 3)
+            a = numpy.mean(v[:, 0:3], axis=0, keepdims=True)  # (1, 3)
             v[:, 0:3] = v[:, 0:3] - a
-        n = numpy.linalg.norm(v[:, 0:3], axis=1) # (N,)
-        m = numpy.max(n) # scalar
+        n = numpy.linalg.norm(v[:, 0:3], axis=1)  # (N,)
+        m = numpy.max(n)  # scalar
         v[:, 0:3] = v[:, 0:3] / m
         self._vertices = v
         return self
 
     def on_unit_cube(self, zero_mean=False):
         # volume == 1
-        v = self.vertex_array # (N, D)
+        v = self.vertex_array  # (N, D)
         if zero_mean:
-            a = numpy.mean(v[:, 0:3], axis=0, keepdims=True) # (1, 3)
+            a = numpy.mean(v[:, 0:3], axis=0, keepdims=True)  # (1, 3)
             v[:, 0:3] = v[:, 0:3] - a
-        m = numpy.max(numpy.abs(v)) # scalar
+        m = numpy.max(numpy.abs(v))  # scalar
         v[:, 0:3] = v[:, 0:3] / (m * 2)
         self._vertices = v
         return self
@@ -104,6 +105,7 @@ class Mesh:
         self._vertices = list(map(tuple, v))
         return self
 
+
 def offread(filepath, points_only=True):
     """ read Geomview OFF file. """
     with open(filepath, 'r') as fin:
@@ -111,6 +113,7 @@ def offread(filepath, points_only=True):
     if fixme:
         _fix_modelnet_broken_off(filepath)
     return mesh
+
 
 def _load_off(fin, points_only):
     """ read Geomview OFF file. """
@@ -121,7 +124,7 @@ def _load_off(fin, points_only):
     if sig == 'OFF':
         line = fin.readline().strip()
         num_verts, num_faces, num_edges = tuple([int(s) for s in line.split(' ')])
-    elif sig[0:3] == 'OFF': # ...broken data in ModelNet (missing '\n')...
+    elif sig[0:3] == 'OFF':  # ...broken data in ModelNet (missing '\n')...
         line = sig[3:]
         num_verts, num_faces, num_edges = tuple([int(s) for s in line.split(' ')])
         fixme = True
@@ -140,6 +143,7 @@ def _load_off(fin, points_only):
         mesh._faces.append(fc)
 
     return mesh, fixme
+
 
 def _fix_modelnet_broken_off(filepath):
     oldfile = '{}.orig'.format(filepath)
@@ -194,7 +198,7 @@ def objread(filepath, points_only=True):
                     norms_.append(int(w[2]) - 1)
                 else:
                     norms_.append(-1)
-            #_faces.append((face_, norms_, texcoords_, material))
+            # _faces.append((face_, norms_, texcoords_, material))
             _faces.append(face_)
 
     mesh = Mesh()
@@ -206,6 +210,7 @@ def objread(filepath, points_only=True):
 
     return mesh
 
+
 def plyread(filepath, points_only=True):
     # read binary ply file and return [x, y, z] array
     data = PlyData.read(filepath)
@@ -216,11 +221,9 @@ def plyread(filepath, points_only=True):
 
     mesh = Mesh()
 
-
     for v in range(num_verts):
         vp = tuple(float(s) for s in [x[v], y[v], z[v]])
         mesh._vertices.append(vp)
-
 
     return mesh
 
@@ -228,16 +231,20 @@ def plyread(filepath, points_only=True):
 if __name__ == '__main__':
     def test1():
         mesh = objread('model_normalized.obj', points_only=False)
-        #mesh.on_unit_sphere()
+        # mesh.on_unit_sphere()
         mesh.rot_x()
         mesh.plot(c='m')
         matplotlib.pyplot.show()
+
+
     def test2():
         mesh = plyread('1.ply', points_only=True)
         # mesh.on_unit_sphere()
         mesh.rot_x()
         mesh.plot(c='m')
         matplotlib.pyplot.show()
+
+
     test2()
 
-#EOF
+# EOF

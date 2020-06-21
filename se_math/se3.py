@@ -3,6 +3,7 @@ import torch
 from .sinc import sinc1, sinc2, sinc3
 from . import so3
 
+
 def twist_prod(x, y):
     x_ = x.view(-1, 6)
     y_ = y.view(-1, 6)
@@ -17,6 +18,7 @@ def twist_prod(x, y):
 
     return z.view_as(x)
 
+
 def liebracket(x, y):
     return twist_prod(x, y)
 
@@ -29,11 +31,12 @@ def mat(x):
     O = torch.zeros_like(w1)
 
     X = torch.stack((
-        torch.stack((  O, -w3,  w2, v1), dim=1),
-        torch.stack(( w3,   O, -w1, v2), dim=1),
-        torch.stack((-w2,  w1,   O, v3), dim=1),
-        torch.stack((  O,   O,   O,  O), dim=1)), dim=1)
+        torch.stack((O, -w3, w2, v1), dim=1),
+        torch.stack((w3, O, -w1, v2), dim=1),
+        torch.stack((-w2, w1, O, v3), dim=1),
+        torch.stack((O, O, O, O), dim=1)), dim=1)
     return X.view(*(x.size()[0:-1]), 4, 4)
+
 
 def vec(X):
     X_ = X.view(-1, 4, 4)
@@ -42,11 +45,14 @@ def vec(X):
     x = torch.stack((w1, w2, w3, v1, v2, v3), dim=1)
     return x.view(*X.size()[0:-2], 6)
 
+
 def genvec():
     return torch.eye(6)
 
+
 def genmat():
     return mat(genvec())
+
 
 def exp(x):
     x_ = x.view(-1, 6)
@@ -57,13 +63,13 @@ def exp(x):
     I = torch.eye(3).to(w)
 
     # Rodrigues' rotation formula.
-    #R = cos(t)*eye(3) + sinc1(t)*W + sinc2(t)*(w*w');
+    # R = cos(t)*eye(3) + sinc1(t)*W + sinc2(t)*(w*w');
     #  = eye(3) + sinc1(t)*W + sinc2(t)*S
-    R = I + sinc1(t)*W + sinc2(t)*S
+    R = I + sinc1(t) * W + sinc2(t) * S
 
-    #V = sinc1(t)*eye(3) + sinc2(t)*W + sinc3(t)*(w*w')
+    # V = sinc1(t)*eye(3) + sinc2(t)*W + sinc3(t)*(w*w')
     #  = eye(3) + sinc2(t)*W + sinc3(t)*S
-    V = I + sinc2(t)*W + sinc3(t)*S
+    V = I + sinc2(t) * W + sinc3(t) * S
 
     p = V.bmm(v.contiguous().view(-1, 3, 1))
 
@@ -72,6 +78,7 @@ def exp(x):
     g = torch.cat((Rp, z), dim=1)
 
     return g.view(*(x.size()[0:-1]), 4, 4)
+
 
 def inverse(g):
     g_ = g.view(-1, 4, 4)
@@ -99,6 +106,7 @@ def log(g):
     x = torch.cat((w, v), dim=1)
     return x.view(*(g.size()[0:-2]), 6)
 
+
 def transform(g, a):
     # g : SE(3),  * x 4 x 4
     # a : R^3,    * x 3[x N]
@@ -111,6 +119,7 @@ def transform(g, a):
         b = R.matmul(a.unsqueeze(-1)).squeeze(-1) + p
     return b
 
+
 def group_prod(g, h):
     # g, h : SE(3)
     g1 = g.matmul(h)
@@ -120,6 +129,7 @@ def group_prod(g, h):
 class ExpMap(torch.autograd.Function):
     """ Exp: se(3) -> SE(3)
     """
+
     @staticmethod
     def forward(ctx, x):
         """ Exp: R^6 -> M(4),
@@ -151,7 +161,7 @@ class ExpMap(torch.autograd.Function):
 
         return grad_input
 
+
 Exp = ExpMap.apply
 
-
-#EOF
+# EOF

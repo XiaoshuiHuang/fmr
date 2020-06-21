@@ -10,15 +10,18 @@ from random import sample
 import se_math.se3 as se3
 import se_math.invmat as invmat
 
+
 # a global function to flatten a feature
 def flatten(x):
     return x.view(x.size(0), -1)
+
 
 # a global function to calculate max-pooling
 def symfn_max(x):
     # [B, K, N] -> [B, K, 1]
     a = torch.nn.functional.max_pool1d(x, x.size(-1))
     return a
+
 
 # a global function to generate mlp layers
 def _mlp_layers(nch_input, nch_layers, b_shared=True, bn_momentum=0.1, dropout=0.0):
@@ -40,6 +43,7 @@ def _mlp_layers(nch_input, nch_layers, b_shared=True, bn_momentum=0.1, dropout=0
         last = outp
     return layers
 
+
 # a class to generate MLP network
 class MLPNet(torch.nn.Module):
     """ Multi-layer perception.
@@ -55,6 +59,7 @@ class MLPNet(torch.nn.Module):
     def forward(self, inp):
         out = self.layers(inp)
         return out
+
 
 # encoder network
 class PointNet(torch.nn.Module):
@@ -80,19 +85,20 @@ class PointNet(torch.nn.Module):
 
         return x
 
+
 # decoder network
 class Decoder(torch.nn.Module):
-    def __init__(self, num_points = 2048, bottleneck_size = 1024):
+    def __init__(self, num_points=2048, bottleneck_size=1024):
         super(Decoder, self).__init__()
         self.num_points = num_points
         self.bottleneck_size = bottleneck_size
         self.bn1 = torch.nn.BatchNorm1d(bottleneck_size)
-        self.bn2 = torch.nn.BatchNorm1d(bottleneck_size//2)
-        self.bn3 = torch.nn.BatchNorm1d(bottleneck_size//4)
+        self.bn2 = torch.nn.BatchNorm1d(bottleneck_size // 2)
+        self.bn3 = torch.nn.BatchNorm1d(bottleneck_size // 4)
         self.fc1 = torch.nn.Linear(self.bottleneck_size, bottleneck_size)
-        self.fc2 = torch.nn.Linear(self.bottleneck_size, bottleneck_size//2)
-        self.fc3 = torch.nn.Linear(bottleneck_size//2, bottleneck_size//4)
-        self.fc4 = torch.nn.Linear(bottleneck_size//4, self.num_points * 3)
+        self.fc2 = torch.nn.Linear(self.bottleneck_size, bottleneck_size // 2)
+        self.fc3 = torch.nn.Linear(bottleneck_size // 2, bottleneck_size // 4)
+        self.fc4 = torch.nn.Linear(bottleneck_size // 4, self.num_points * 3)
         self.th = torch.nn.Tanh()
 
     def forward(self, x):
@@ -101,8 +107,9 @@ class Decoder(torch.nn.Module):
         x = torch.nn.functional.relu(self.bn2(self.fc2(x)))
         x = torch.nn.functional.relu(self.bn3(self.fc3(x)))
         x = self.th(self.fc4(x))
-        x = x.view(batchsize, 3, self.num_points).transpose(1,2).contiguous()
+        x = x.view(batchsize, 3, self.num_points).transpose(1, 2).contiguous()
         return x
+
 
 # the neural network of feature-metric registration
 class SolveRegistration(torch.nn.Module):
@@ -114,19 +121,19 @@ class SolveRegistration(torch.nn.Module):
 
         # functions
         self.inverse = invmat.InvMatrix.apply
-        self.exp = se3.Exp # [B, 6] -> [B, 4, 4]
-        self.transform = se3.transform # [B, 1, 4, 4] x [B, N, 3] -> [B, N, 3]
+        self.exp = se3.Exp  # [B, 6] -> [B, 4, 4]
+        self.transform = se3.transform  # [B, 1, 4, 4] x [B, N, 3] -> [B, N, 3]
 
         # initialization for dt: [w1, w2, w3, v1, v2, v3], 3 rotation angles and 3 translation
-        delta = 1.0e-2 # step size for approx. Jacobian (default: 1.0e-2)
+        delta = 1.0e-2  # step size for approx. Jacobian (default: 1.0e-2)
         dt_initial = torch.autograd.Variable(torch.Tensor([delta, delta, delta, delta, delta, delta]))
         self.dt = torch.nn.Parameter(dt_initial.view(1, 6), requires_grad=True)
 
         # results
         self.last_err = None
-        self.g_series = None # for debug purpose
+        self.g_series = None  # for debug purpose
         self.prev_r = None
-        self.g = None # estimated transformation T
+        self.g = None  # estimated transformation T
 
     # estimate T
     def estimate_t(self, p0, p1, maxiter=5, xtol=1.0e-7, p0_zero_mean=True, p1_zero_mean=True):
@@ -140,18 +147,18 @@ class SolveRegistration(torch.nn.Module):
         :param p1_zero_mean: True: normanize p1 before IC algorithm
         :return: feature-metric projection error (r), encoder-decoder loss (loss_ende)
         """
-        a0 = torch.eye(4).view(1, 4, 4).expand(p0.size(0), 4, 4).to(p0) # [B, 4, 4]
-        a1 = torch.eye(4).view(1, 4, 4).expand(p1.size(0), 4, 4).to(p1) # [B, 4, 4]
+        a0 = torch.eye(4).view(1, 4, 4).expand(p0.size(0), 4, 4).to(p0)  # [B, 4, 4]
+        a1 = torch.eye(4).view(1, 4, 4).expand(p1.size(0), 4, 4).to(p1)  # [B, 4, 4]
         # normalization
         if p0_zero_mean:
-            p0_m = p0.mean(dim=1) # [B, N, 3] -> [B, 3]
-            a0=a0.clone()
+            p0_m = p0.mean(dim=1)  # [B, N, 3] -> [B, 3]
+            a0 = a0.clone()
             a0[:, 0:3, 3] = p0_m
             q0 = p0 - p0_m.unsqueeze(1)
         else:
             q0 = p0
         if p1_zero_mean:
-            p1_m = p1.mean(dim=1) # [B, N, 3] -> [B, 3]
+            p1_m = p1.mean(dim=1)  # [B, N, 3] -> [B, 3]
             a1 = a1.clone()
             a1[:, 0:3, 3] = -p1_m
             q1 = p1 - p1_m.unsqueeze(1)
@@ -165,7 +172,7 @@ class SolveRegistration(torch.nn.Module):
 
         # re-normalization
         if p0_zero_mean or p1_zero_mean:
-            #output' = trans(p0_m) * output * trans(-p1_m)
+            # output' = trans(p0_m) * output * trans(-p1_m)
             #        = [I, p0_m;] * [R, t;] * [I, -p1_m;]
             #          [0, 1    ]   [0, 1 ]   [0,  1    ]
             est_g = self.g
@@ -175,14 +182,14 @@ class SolveRegistration(torch.nn.Module):
                 est_g = est_g.bmm(a1.to(est_g))
             self.g = est_g
 
-            est_gs = self.g_series # [M, B, 4, 4]
+            est_gs = self.g_series  # [M, B, 4, 4]
             if p0_zero_mean:
                 est_gs = a0.unsqueeze(0).contiguous().to(est_gs).matmul(est_gs)
             if p1_zero_mean:
                 est_gs = est_gs.matmul(a1.unsqueeze(0).contiguous().to(est_gs))
             self.g_series = est_gs
 
-        return r,  loss_ende
+        return r, loss_ende
 
     # IC algorithm
     def ic_algo(self, g0, p0, p1, maxiter, xtol):
@@ -209,7 +216,7 @@ class SolveRegistration(torch.nn.Module):
         f1 = self.encoder(p1)
 
         # task 1
-        loss_enco_deco=0.0
+        loss_enco_deco = 0.0
         if self.decoder is not None:
             decoder_out_f0 = self.decoder(f0)
             decoder_out_f1 = self.decoder(f1)
@@ -218,7 +225,7 @@ class SolveRegistration(torch.nn.Module):
             loss_net0 = (torch.mean(p0_dist1)) + (torch.mean(p0_dist2))
             p1_dist1, p1_dist2 = self.chamfer_loss(p1.contiguous(), decoder_out_f1)  # loss function
             loss_net1 = (torch.mean(p1_dist1)) + (torch.mean(p1_dist2))
-            loss_enco_deco= loss_net0 + loss_net1
+            loss_enco_deco = loss_net0 + loss_net1
 
         self.encoder.eval()  # and fix them.
 
@@ -276,18 +283,18 @@ class SolveRegistration(torch.nn.Module):
         # compute transforms
         transf = torch.zeros(batch_size, 6, 4, 4).to(p0)
         for b in range(p0.size(0)):
-            d = torch.diag(dt[b, :]) # [6, 6]
-            D = self.exp(-d) # [6, 4, 4]
+            d = torch.diag(dt[b, :])  # [6, 6]
+            D = self.exp(-d)  # [6, 4, 4]
             transf[b, :, :, :] = D[:, :, :]
-        transf = transf.unsqueeze(2).contiguous()  #   [B, 6, 1, 4, 4]
-        p = self.transform(transf, p0.unsqueeze(1)) # x [B, 1, N, 3] -> [B, 6, N, 3]
+        transf = transf.unsqueeze(2).contiguous()  # [B, 6, 1, 4, 4]
+        p = self.transform(transf, p0.unsqueeze(1))  # x [B, 1, N, 3] -> [B, 6, N, 3]
 
-        f0 = f0.unsqueeze(-1) # [B, K, 1]
+        f0 = f0.unsqueeze(-1)  # [B, K, 1]
         f1 = self.encoder(p.view(-1, num_points, 3))
-        f = f1.view(batch_size, 6, -1).transpose(1, 2) # [B, K, 6]
+        f = f1.view(batch_size, 6, -1).transpose(1, 2)  # [B, K, 6]
 
-        df = f0 - f # [B, K, 6]
-        J = df / dt.unsqueeze(1) # [B, K, 6]
+        df = f0 - f  # [B, K, 6]
+        J = df / dt.unsqueeze(1)  # [B, K, 6]
 
         return J
 
@@ -327,12 +334,13 @@ class SolveRegistration(torch.nn.Module):
         I = torch.eye(4).to(A).view(1, 4, 4).expand(A.size(0), 4, 4)
         return torch.nn.functional.mse_loss(A, I, reduction='mean') * 16
 
+
 # main algorithm class
 class FMRTrain:
     def __init__(self, dim_k, num_points, train_type):
         self.dim_k = dim_k
         self.num_points = num_points
-        self.max_iter = 10 # max iteration time for IC algorithm
+        self.max_iter = 10  # max iteration time for IC algorithm
         self._loss_type = train_type  # 0: unsupervised, 1: semi-supervised see. self.compute_loss()
 
     def create_model(self):
@@ -372,10 +380,10 @@ class FMRTrain:
     def train(self, model, trainloader, optimizer, device):
         model.train()
 
-        Debug=True
+        Debug = True
         total_loss = 0
         if Debug:
-            epe=0
+            epe = 0
             count = 0
             count_mid = 9
         for i, data in enumerate(trainloader):
@@ -408,12 +416,13 @@ class FMRTrain:
         ave_vloss = float(vloss) / count
         return ave_vloss
 
+
 class FMRTest:
     def __init__(self, args):
         self.filename = args.outfile
         self.dim_k = args.dim_k
-        self.max_iter = 10 # max iteration time for IC algorithm
-        self._loss_type = 1 # see. self.compute_loss()
+        self.max_iter = 10  # max iteration time for IC algorithm
+        self._loss_type = 1  # see. self.compute_loss()
 
     def create_model(self):
         # Encoder network: extract feature for every point. Nx1024
@@ -428,7 +437,7 @@ class FMRTest:
             self.eval_1__header(fout)
             with torch.no_grad():
                 for i, data in enumerate(testloader):
-                    p0, p1, igt = data # igt: p0->p1
+                    p0, p1, igt = data  # igt: p0->p1
                     # # compute trans from p1->p0
                     # g = se3.log(igt)  # --> [-1, 6]
                     # igt = se3.exp(-g)  # [-1, 4, 4]
@@ -449,9 +458,9 @@ class FMRTest:
                     dm = dn.mean()
 
                     self.eval_1__write(fout, ig_gt, g_hat)
-                    print('test, %d/%d, %f' %(i, len(testloader), dm))
+                    print('test, %d/%d, %f' % (i, len(testloader), dm))
 
-    def ablation_study(self, p0, p1,add_noise=False, add_density=False):
+    def ablation_study(self, p0, p1, add_noise=False, add_density=False):
         # ablation study
         # mesh = self.plyread("./box1Kinect1.ply")
         # p0 = torch.tensor(mesh).to(device).unsqueeze(0)
@@ -466,7 +475,7 @@ class FMRTest:
         if add_density:
             density_ratio = 0.5
             pts_num = p1.shape[0]
-            sampleNum = int(pts_num * density_ratio) # the number of remaining points
+            sampleNum = int(pts_num * density_ratio)  # the number of remaining points
             if pts_num > sampleNum:
                 num = sample(range(1, pts_num), sampleNum)
             elif pts_num > 0:
@@ -493,8 +502,3 @@ class FMRTest:
             valn = vals.cpu().numpy().tolist()
             print(','.join(map(str, valn)), file=fout)
         fout.flush()
-
-
-
-
-

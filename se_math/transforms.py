@@ -17,44 +17,47 @@ class Mesh2Points:
         v = mesh.vertex_array
         return torch.from_numpy(v).type(dtype=torch.float)
 
+
 class OnUnitSphere:
     def __init__(self, zero_mean=False):
         self.zero_mean = zero_mean
 
     def __call__(self, tensor):
         if self.zero_mean:
-            m = tensor.mean(dim=0, keepdim=True) # [N, D] -> [1, D]
+            m = tensor.mean(dim=0, keepdim=True)  # [N, D] -> [1, D]
             v = tensor - m
         else:
             v = tensor
-        nn = v.norm(p=2, dim=1) # [N, D] -> [N]
+        nn = v.norm(p=2, dim=1)  # [N, D] -> [N]
         nmax = torch.max(nn)
         return v / nmax
+
 
 class OnUnitCube:
     def __init__(self):
         pass
 
     def method1(self, tensor):
-        m = tensor.mean(dim=0, keepdim=True) # [N, D] -> [1, D]
+        m = tensor.mean(dim=0, keepdim=True)  # [N, D] -> [1, D]
         v = tensor - m
         s = torch.max(v.abs())
         v = v / s * 0.5
         return v
 
     def method2(self, tensor):
-        c = torch.max(tensor, dim=0)[0] - torch.min(tensor, dim=0)[0] # [N, D] -> [D]
-        s = torch.max(c) # -> scalar
+        c = torch.max(tensor, dim=0)[0] - torch.min(tensor, dim=0)[0]  # [N, D] -> [D]
+        s = torch.max(c)  # -> scalar
         v = tensor / s
         return v - v.mean(dim=0, keepdim=True)
 
     def __call__(self, tensor):
-        #return self.method1(tensor)
+        # return self.method1(tensor)
         return self.method2(tensor)
 
 
 class Resampler:
     """ [N, D] -> [M, D] """
+
     def __init__(self, num):
         self.num = num
 
@@ -72,6 +75,7 @@ class Resampler:
             selected += sel
         return out
 
+
 class RandomTranslate:
     def __init__(self, mag=None, randomly=True):
         self.mag = 1.0 if mag is None else mag
@@ -86,10 +90,11 @@ class RandomTranslate:
 
         g = torch.eye(4).to(tensor)
         g[0:3, 3] = t[0, :]
-        self.igt = g # [4, 4]
+        self.igt = g  # [4, 4]
 
         p1 = tensor + t
         return p1
+
 
 class RandomRotator:
     def __init__(self, mag=None, randomly=True):
@@ -103,11 +108,12 @@ class RandomRotator:
         w = torch.randn(1, 3)
         w = w / w.norm(p=2, dim=1, keepdim=True) * amp * self.mag
 
-        g = so3.exp(w).to(tensor) # [1, 3, 3]
-        self.igt = g.squeeze(0) # [3, 3]
+        g = so3.exp(w).to(tensor)  # [1, 3, 3]
+        self.igt = g.squeeze(0)  # [3, 3]
 
-        p1 = so3.transform(g, tensor) # [1, 3, 3] x [N, 3] -> [N, 3]
+        p1 = so3.transform(g, tensor)  # [1, 3, 3] x [N, 3] -> [N, 3]
         return p1
+
 
 class RandomRotatorZ:
     def __init__(self):
@@ -117,20 +123,22 @@ class RandomRotatorZ:
         # tensor: [N, 3]
         w = torch.Tensor([0, 0, 1]).view(1, 3) * torch.rand(1) * self.mag
 
-        g = so3.exp(w).to(tensor) # [1, 3, 3]
+        g = so3.exp(w).to(tensor)  # [1, 3, 3]
 
         p1 = so3.transform(g, tensor)
         return p1
 
+
 class RandomJitter:
     """ generate perturbations """
+
     def __init__(self, scale=0.01, clip=0.05):
         self.scale = scale
         self.clip = clip
         self.e = None
 
     def jitter(self, tensor):
-        noise = torch.zeros_like(tensor).to(tensor) # [N, 3]
+        noise = torch.zeros_like(tensor).to(tensor)  # [N, 3]
         noise.normal_(0, self.scale)
         noise.clamp_(-self.clip, self.clip)
         self.e = noise
@@ -142,6 +150,7 @@ class RandomJitter:
 
 class RandomTransformSE3:
     """ rigid motion """
+
     def __init__(self, mag=1, mag_randomly=False):
         self.mag = mag
         self.randomly = mag_randomly
@@ -163,17 +172,17 @@ class RandomTransformSE3:
         b[:, 0:3] = a
         x = x+b
         '''
-        return x # [1, 6]
+        return x  # [1, 6]
 
     def apply_transform(self, p0, x):
         # p0: [N, 3]
         # x: [1, 6]
-        g = se3.exp(x).to(p0)   # [1, 4, 4]
-        gt = se3.exp(-x).to(p0) # [1, 4, 4]
+        g = se3.exp(x).to(p0)  # [1, 4, 4]
+        gt = se3.exp(-x).to(p0)  # [1, 4, 4]
 
         p1 = se3.transform(g, p0)
-        self.gt = gt.squeeze(0) #  gt: p1 -> p0
-        self.igt = g.squeeze(0) # igt: p0 -> p1
+        self.gt = gt.squeeze(0)  # gt: p1 -> p0
+        self.igt = g.squeeze(0)  # igt: p0 -> p1
         return p1
 
     def transform(self, tensor):
@@ -183,6 +192,4 @@ class RandomTransformSE3:
     def __call__(self, tensor):
         return self.transform(tensor)
 
-
-
-#EOF
+# EOF
