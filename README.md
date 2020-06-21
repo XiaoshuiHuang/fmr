@@ -16,7 +16,7 @@ To run the code, please follow the below steps:
 
 ### 1. Install dependencies:
 
-    pip install torch===1.5.1 torchvision===0.6.1 -f https://download.pytorch.org/whl/torch_stable.html argparse logging numpy glob   matplotlib six
+    pip install torch===1.5.1 torchvision===0.6.1 -f https://download.pytorch.org/whl/torch_stable.html argparse logging numpy glob matplotlib six
 
 ### 2. Train the model
 
@@ -37,8 +37,16 @@ To run the code, please follow the below steps:
    3.1. Evaluate on dataset 7scene: 
    
     python evalute.py -data 7scene
-   
-### 4. Citation
+ 
+### 4. Pre-trained models
+
+will update soon
+
+### 5. Code for testing your own point clouds
+
+will update soon
+ 
+### 6. Citation
 
 ```
 @InProceedings{Huang_2020_CVPR,
