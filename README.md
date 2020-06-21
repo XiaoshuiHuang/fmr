@@ -1,6 +1,9 @@
 # Feature-metric registration
 This repository is the implementation of our CVPR 2020 work: "Feature-metric Registration: A Fast Semi-supervised Approach for Robust Point Cloud Registration without Correspondences"
 
+<p align="center"> <img width="50%" src="https://github.com/XiaoshuiHuang/xiaoshuihuang.github.io/blob/master/research/2020-feature-metric.png?raw=true" /></p>
+<p align="center"><img width="50%" src="https://github.com/XiaoshuiHuang/xiaoshuihuang.github.io/blob/master/research/2020-feature.png?raw=true" /></p>
+
 There are several lights of this work:
 
 1. 💡 This work solves the point cloud registration using feature-metric projection error. 
