@@ -38,11 +38,11 @@ To run the code, please follow the below steps:
    
     python evalute.py -data 7scene
  
-### 4. pre-trained models
+### 4. Pre-trained models
 
 will update soon
 
-### 5. Test on new point clouds
+### 5. Code for testing your own point clouds
 
 will update soon
  
