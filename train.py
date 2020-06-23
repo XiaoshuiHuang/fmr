@@ -15,7 +15,7 @@ LOGGER.addHandler(logging.NullHandler())
 
 
 def parameters(argv=None):
-    parser = argparse.ArgumentParser(description='PointNet-LK')
+    parser = argparse.ArgumentParser(description='Feature-metric registration')
 
     # required to check
     parser.add_argument('-data', '--dataset-type', default='7scene', choices=['modelnet', '7scene'],

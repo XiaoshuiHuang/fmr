@@ -34,7 +34,7 @@ To run the code, please follow the below steps:
    
     python evalute.py -data modelnet
    
-   3.1. Evaluate on dataset 7scene: 
+   3.2. Evaluate on dataset 7scene: 
    
     python evalute.py -data 7scene
  

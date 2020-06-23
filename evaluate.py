@@ -52,7 +52,7 @@ def options(argv=None):
 
     # settings for performance adjust
     parser.add_argument('--max-iter', default=10, type=int,
-                        metavar='N', help='max-iter on LK. (default: 20)')
+                        metavar='N', help='max-iter on IC algorithm. (default: 20)')
     parser.add_argument('--dim-k', default=1024, type=int,
                         metavar='K', help='dim. of the feature vector (default: 1024)')
     # settings for on testing

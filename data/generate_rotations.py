@@ -1,5 +1,5 @@
 """
-    generate perturbations for testing PointNet-LK and/or ICP
+    generate perturbations for testing Feature-metric registration
     for ex.1
 """
 
@@ -23,12 +23,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pa
 
 
 def options(argv=None):
-    parser = argparse.ArgumentParser(description='PointNet-LK')
+    parser = argparse.ArgumentParser(description='Feature-metric registration')
 
     # required.
     parser.add_argument('-o', '--outfile', required=True, type=str,
                         metavar='FILENAME',
-                        help='output filename (.csv)')  # the perturbation file for 'test_pointlk.py'
+                        help='output filename (.csv)')  # the perturbation file for 'evaluate.py'
     parser.add_argument('-i', '--dataset-path', required=True, type=str,
                         metavar='PATH', help='path to the input dataset')  # like '/path/to/ModelNet40'
     parser.add_argument('-c', '--categoryfile', required=True, type=str,
