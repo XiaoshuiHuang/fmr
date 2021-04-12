@@ -332,5 +332,5 @@ def get_datasets(args):
 
             # randomly generate transformation matrix
             mag_randomly = True
-            testset = TransformedDataset(testdata, transforms.RandomTransformSE3(0.6, mag_randomly))
+            testset = TransformedDataset(testdata, transforms.RandomTransformSE3(0.8, mag_randomly))
             return testset

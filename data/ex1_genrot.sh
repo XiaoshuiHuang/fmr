@@ -7,9 +7,9 @@ OUTDIR="./"
 mkdir -p ${OUTDIR}
 
 # Python3 command
-PY3="C:\\Users\\xhua5093\\AppData\\Local\\Continuum\\anaconda3\\python.exe"
+PY3="python"
 
-# categories for testing
+# categories for testing: need to change path of ModelNet40 to the modelnet40 path in your machine
 CMN="-i ./ModelNet40 -c ./categories/modelnet40_half1.txt --format wt"
 
 ${PY3} generate_rotations.py ${CMN} -o ${OUTDIR}/pert_000.csv --deg 0.0

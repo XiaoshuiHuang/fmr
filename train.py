@@ -13,6 +13,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 def parameters(argv=None):
     parser = argparse.ArgumentParser(description='Feature-metric registration')
@@ -52,11 +53,11 @@ def parameters(argv=None):
                         metavar='N', help='manual epoch number (useful on restarts)')
     parser.add_argument('--resume', default='', type=str,
                         metavar='PATH', help='path to latest checkpoint (default: null (no-use))')
-    parser.add_argument('--pretrained', default='', type=str,
+    parser.add_argument('--pretrained', default='./result/fmr_model_7scene.pth', type=str,
                         metavar='PATH', help='path to pretrained model file (default: null (no-use))')
     parser.add_argument('--device', default='cuda:0', type=str,
                         metavar='DEVICE', help='use CUDA if available')
-    parser.add_argument('-i', '--dataset-path', default='./data/ModelNet40', type=str,
+    parser.add_argument('-i', '--dataset-path', default='', type=str,
                         metavar='PATH', help='path to the input dataset')  # like '/path/to/ModelNet40'
     parser.add_argument('-c', '--categoryfile', default='./data/categories/modelnet40_half1.txt', type=str,
                         metavar='PATH',

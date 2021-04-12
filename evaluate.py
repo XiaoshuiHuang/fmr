@@ -47,7 +47,7 @@ def options(argv=None):
                         metavar='PATH', help='path to the perturbation file')  # run
     parser.add_argument('-l', '--logfile', default='./result/log_010.log', type=str,
                         metavar='LOGNAME', help='path to logfile (default: null (no logging))')
-    parser.add_argument('--pretrained', default='', type=str,
+    parser.add_argument('--pretrained', default='./result/fmr_model_7scene.pth', type=str,
                         metavar='PATH', help='path to trained model file (default: null (no-use))')
 
     # settings for performance adjust
@@ -58,7 +58,7 @@ def options(argv=None):
     # settings for on testing
     parser.add_argument('-j', '--workers', default=2, type=int,
                         metavar='N', help='number of data loading workers (default: 4)')
-    parser.add_argument('--device', default='cpu', type=str,
+    parser.add_argument('--device', default='cuda', type=str,
                         metavar='DEVICE', help='use CUDA if available (default: cpu)')
     parser.add_argument('-i', '--dataset-path', default='', type=str,
                         metavar='PATH', help='path to the input dataset')  # like '/path/to/ModelNet40'

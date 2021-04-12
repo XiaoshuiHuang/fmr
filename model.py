@@ -113,7 +113,7 @@ class Decoder(torch.nn.Module):
 
 # the neural network of feature-metric registration
 class SolveRegistration(torch.nn.Module):
-    def __init__(self, ptnet, decoder=None):
+    def __init__(self, ptnet, decoder=None, isTest=False):
         super().__init__()
         # network
         self.encoder = ptnet
@@ -134,6 +134,7 @@ class SolveRegistration(torch.nn.Module):
         self.g_series = None  # for debug purpose
         self.prev_r = None
         self.g = None  # estimated transformation T
+        self.isTest = isTest # whether it is testing
 
     # estimate T
     def estimate_t(self, p0, p1, maxiter=5, xtol=1.0e-7, p0_zero_mean=True, p1_zero_mean=True):
@@ -167,7 +168,7 @@ class SolveRegistration(torch.nn.Module):
 
         # use IC algorithm to estimate the transformation
         g0 = torch.eye(4).to(q0).view(1, 4, 4).expand(q0.size(0), 4, 4).contiguous()
-        r, g, loss_ende = self.ic_algo(g0, q0, q1, maxiter, xtol)
+        r, g, loss_ende = self.ic_algo(g0, q0, q1, maxiter, xtol, is_test=self.isTest)
         self.g = g
 
         # re-normalization
@@ -192,7 +193,7 @@ class SolveRegistration(torch.nn.Module):
         return r, loss_ende
 
     # IC algorithm
-    def ic_algo(self, g0, p0, p1, maxiter, xtol):
+    def ic_algo(self, g0, p0, p1, maxiter, xtol, is_test=False):
         """
         use IC algorithm to estimate the increment of transformation parameters
         :param g0: initial transformation
@@ -217,7 +218,7 @@ class SolveRegistration(torch.nn.Module):
 
         # task 1
         loss_enco_deco = 0.0
-        if self.decoder is not None:
+        if not is_test:
             decoder_out_f0 = self.decoder(f0)
             decoder_out_f1 = self.decoder(f1)
 
@@ -349,7 +350,7 @@ class FMRTrain:
         # Decoder network: decode the feature into points
         decoder = Decoder(num_points=self.num_points)
         # feature-metric ergistration (fmr) algorithm: estimate the transformation T
-        fmr_solver = SolveRegistration(ptnet, decoder)
+        fmr_solver = SolveRegistration(ptnet, decoder,isTest=False)
         return fmr_solver
 
     def compute_loss(self, solver, data, device):
@@ -427,8 +428,10 @@ class FMRTest:
     def create_model(self):
         # Encoder network: extract feature for every point. Nx1024
         ptnet = PointNet(dim_k=self.dim_k)
+        # Decoder network: decode the feature into points, not used during the evaluation
+        decoder = Decoder()
         # feature-metric ergistration (fmr) algorithm: estimate the transformation T
-        fmr_solver = SolveRegistration(ptnet)
+        fmr_solver = SolveRegistration(ptnet, decoder, isTest=True)
         return fmr_solver
 
     def evaluate(self, solver, testloader, device):
@@ -459,6 +462,7 @@ class FMRTest:
 
                     self.eval_1__write(fout, ig_gt, g_hat)
                     print('test, %d/%d, %f' % (i, len(testloader), dm))
+
 
     def ablation_study(self, p0, p1, add_noise=False, add_density=False):
         # ablation study
@@ -502,3 +506,4 @@ class FMRTest:
             valn = vals.cpu().numpy().tolist()
             print(','.join(map(str, valn)), file=fout)
         fout.flush()
+

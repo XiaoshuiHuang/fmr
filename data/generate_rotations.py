@@ -12,7 +12,7 @@ import torch
 import torch.utils.data
 import torchvision
 
-sys.path.append('../se_math')
+sys.path.append('../')
 
 from se_math import se3
 from se_math import so3
