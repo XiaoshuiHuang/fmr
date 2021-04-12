@@ -43,7 +43,7 @@ To run the code, please follow the below steps:
  
 ### 4. Pre-trained models
 
-will update soon
+    the pretrained models is stored in the result folder.
 
 ### 5. Code for testing your own point clouds
 
