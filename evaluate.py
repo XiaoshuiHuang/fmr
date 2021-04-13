@@ -19,8 +19,7 @@ LOGGER.addHandler(logging.NullHandler())
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # used GPU card no.
-
+# os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # used GPU card no.
 
 # visualize the point clouds
 def draw_registration_result(source, target, transformation):
