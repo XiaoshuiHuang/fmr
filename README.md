@@ -47,7 +47,11 @@ To run the code, please follow the below steps:
 
 ### 5. Code for testing your own point clouds
 
-will update soon
+    Test your own point clouds by running: 
+	
+	python demo.py
+	
+	You need to change the path0 and path1 of demo.py to the paths of your own  point clouds.
  
 ### 6. Citation
 
