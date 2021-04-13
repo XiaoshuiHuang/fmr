@@ -19,7 +19,7 @@ To run the code, please follow the below steps:
 
 ### 1. Install dependencies:
 
-    pip install torch===1.5.1 torchvision===0.6.1 -f https://download.pytorch.org/whl/torch_stable.html argparse logging numpy glob matplotlib six
+    pip install torch===1.5.1 torchvision===0.6.1 -f https://download.pytorch.org/whl/torch_stable.html argparse numpy glob matplotlib six 
 
 ### 2. Train the model
 
