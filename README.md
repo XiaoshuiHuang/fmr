@@ -26,6 +26,7 @@ To run the code, please follow the below steps:
    2.1. Train on dataset ModelNet40:  
    
     python train.py -data modelnet
+	
    
    2.2. Train on dataset 7scene:  
    

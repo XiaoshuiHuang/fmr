@@ -19,7 +19,7 @@ def parameters(argv=None):
     parser = argparse.ArgumentParser(description='Feature-metric registration')
 
     # required to check
-    parser.add_argument('-data', '--dataset-type', default='7scene', choices=['modelnet', '7scene'],
+    parser.add_argument('-data', '--dataset-type', default='modelnet', choices=['modelnet', '7scene'],
                         metavar='DATASET', help='dataset type (default: modelnet)')
     parser.add_argument('-o', '--outfile', default='./result/fmr', type=str,
                         metavar='BASENAME', help='output filename (prefix)')  # the result: ${BASENAME}_model_best.pth
@@ -63,6 +63,7 @@ def parameters(argv=None):
                         metavar='PATH',
                         help='path to the categories to be trained')  # eg. './sampledata/modelnet40_half1.txt'
     parser.add_argument('--mode', default='train', help='program mode. This code is for training')
+    parser.add_argument('--uniformsampling', default=False, type=bool, help='uniform sampling points from the mesh')
     args = parser.parse_args(argv)
     return args
 

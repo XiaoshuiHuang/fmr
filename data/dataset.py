@@ -143,10 +143,12 @@ class PointCloudDataset(torch.utils.data.Dataset):
 class ModelNet(PointCloudDataset):
     """ [Princeton ModelNet](http://modelnet.cs.princeton.edu/) """
 
-    def __init__(self, dataset_path, train=1, transform=None, classinfo=None):
+    def __init__(self, dataset_path, train=1, transform=None, classinfo=None, is_uniform_sampling=False):
         # if you would like to uniformly sampled points from mesh, use this function below
-        # loader = mesh.offread_uniformed # used uniformly sampled points.
-        loader = mesh.offread # use the original vertex in the mesh file
+        if is_uniform_sampling:
+            loader = mesh.offread_uniformed # used uniformly sampled points.
+        else:
+            loader = mesh.offread # use the original vertex in the mesh file
         if train > 0:
             pattern = 'train/*.off'
         elif train == 0:
@@ -276,8 +278,8 @@ def get_datasets(args):
                 transforms.OnUnitCube(), \
                 transforms.Resampler(args.num_points), \
                 ])
-            traindata = ModelNet(args.dataset_path, train=1, transform=transform, classinfo=cinfo)
-            testdata = ModelNet(args.dataset_path, train=0, transform=transform, classinfo=cinfo)
+            traindata = ModelNet(args.dataset_path, train=1, transform=transform, classinfo=cinfo, is_uniform_sampling=args.uniformsampling)
+            testdata = ModelNet(args.dataset_path, train=0, transform=transform, classinfo=cinfo, is_uniform_sampling=args.uniformsampling)
             mag_randomly = True
             trainset = TransformedDataset(traindata, transforms.RandomTransformSE3(args.mag, mag_randomly))
             testset = TransformedDataset(testdata, transforms.RandomTransformSE3(args.mag, mag_randomly))
@@ -295,7 +297,7 @@ def get_datasets(args):
 
             transform = torchvision.transforms.Compose([transforms.Mesh2Points(), transforms.OnUnitCube()])
 
-            testdata = ModelNet(args.dataset_path, train=0, transform=transform, classinfo=cinfo)
+            testdata = ModelNet(args.dataset_path, train=0, transform=transform, classinfo=cinfo, is_uniform_sampling=args.uniformsampling)
             testset = TransformedFixedDataset(testdata, perturbations)
             return testset
 
