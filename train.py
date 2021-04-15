@@ -19,8 +19,8 @@ def parameters(argv=None):
     parser = argparse.ArgumentParser(description='Feature-metric registration')
 
     # required to check
-    parser.add_argument('-data', '--dataset-type', default='modelnet', choices=['modelnet', '7scene'],
-                        metavar='DATASET', help='dataset type (default: modelnet)')
+    parser.add_argument('-data', '--dataset-type', default='7scene', choices=['modelnet', '7scene'],
+                        metavar='DATASET', help='dataset type (default: 7scene)')
     parser.add_argument('-o', '--outfile', default='./result/fmr', type=str,
                         metavar='BASENAME', help='output filename (prefix)')  # the result: ${BASENAME}_model_best.pth
     parser.add_argument('--store', default='./result/fmr_model.pth', type=str, metavar='PATH',
