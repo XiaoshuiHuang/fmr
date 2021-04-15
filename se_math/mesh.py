@@ -8,6 +8,8 @@ import matplotlib.pyplot
 
 # used to read ply files
 from plyfile import PlyData
+import open3d as o3d
+import numpy as np
 
 
 class Mesh:
@@ -105,7 +107,17 @@ class Mesh:
         self._vertices = list(map(tuple, v))
         return self
 
+def offread_uniformed(filepath, sampled_pt_num=1024):
+    """ read OFF mesh file and uniformly sample points on the mesh. """
+    mesh = Mesh()
+    input = o3d.io.read_triangle_mesh(filepath)
+    pointCloud = input.sample_points_uniformly(sampled_pt_num)
+    points = np.asarray(pointCloud.points)
+    pts = tuple(map(tuple, points))
+    mesh._vertices = pts
 
+    return mesh
+    
 def offread(filepath, points_only=True):
     """ read Geomview OFF file. """
     with open(filepath, 'r') as fin:
@@ -245,6 +257,24 @@ if __name__ == '__main__':
         matplotlib.pyplot.show()
 
 
-    test2()
+    def make_open3d_point_cloud(xyz, color=None):
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(xyz)
+        if color is not None:
+            if len(color) != len(xyz):
+                color = np.tile(color, (len(xyz), 1))
+            pcd.colors = o3d.utility.Vector3dVector(color)
+        return pcd
+
+    def test3():
+        mesh = offread("../data/bed.off",False)
+        mesh = offread_uniformed("../data/bed.off")
+        points = mesh.vertex_array
+        p1 = np.asarray(points)
+        pcd = make_open3d_point_cloud(p1)
+        o3d.visualization.draw_geometries([pcd])
+
+
+    test3()
 
 # EOF

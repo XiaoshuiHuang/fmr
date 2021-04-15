@@ -144,7 +144,9 @@ class ModelNet(PointCloudDataset):
     """ [Princeton ModelNet](http://modelnet.cs.princeton.edu/) """
 
     def __init__(self, dataset_path, train=1, transform=None, classinfo=None):
-        loader = mesh.offread
+        # if you would like to uniformly sampled points from mesh, use this function below
+        # loader = mesh.offread_uniformed # used uniformly sampled points.
+        loader = mesh.offread # use the original vertex in the mesh file
         if train > 0:
             pattern = 'train/*.off'
         elif train == 0:
