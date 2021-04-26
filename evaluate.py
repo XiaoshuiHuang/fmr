@@ -65,7 +65,8 @@ def options(argv=None):
                         metavar='PATH',
                         help='path to the categories to be tested')  # eg. './sampledata/modelnet40_half1.txt'
     parser.add_argument('--mode', default='test', help='program mode. This code is for testing')
-
+    parser.add_argument('--uniformsampling', default=False, type=bool, help='uniform sampling points from the mesh')
+    
     args = parser.parse_args(argv)
     return args
 
